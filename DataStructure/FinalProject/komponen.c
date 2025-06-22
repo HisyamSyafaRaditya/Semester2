@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <conio.h>
+
+#define ATAS 72
+#define BAWAH 80
+#define ENTER 13
 
 // Struktur data
-
 typedef struct {
     char nomorKomponen[7];
     char namaKomponen[26];
@@ -17,7 +21,6 @@ typedef struct {
 } Index;
 
 // File dan index global
-
 const char* DATA_FILE = "komponen.dat";
 const char* INDEX_FILE = "index.dat";
 const char* CSV_FILE = "sample_komponen.csv";
@@ -25,8 +28,7 @@ const char* CSV_FILE = "sample_komponen.csv";
 Index indexList[1000];
 int indexCount = 0;
 
-// Fungsi 
-
+// Fungsi bantu
 void pressEnter() {
     printf("Press Enter to continue...");
     getchar(); getchar();
@@ -318,20 +320,6 @@ void hapusData() {
     pressEnter();
 }
 
-void tampilkanMenu() {
-    printf("================================\n");
-    printf("  SISTEM PENGELOLAAN KOMPONEN   \n");
-    printf("================================\n");
-    printf("[1/m]. Menambah data\n");
-    printf("[2/u]. Mengubah data\n");
-    printf("[3/x]. Menampilkan semua data dengan index\n");
-    printf("[4/T]. Menampilkan semua data tanpa index\n");
-    printf("[5/H]. Hapus data\n");
-    printf("[6/K]. Keluar\n");
-    printf("================================\n");
-    printf("Pilih menu: ");
-}
-
 void exportDataToCSV() {
     FILE* file = fopen(DATA_FILE, "rb");
     if (file == NULL) {
@@ -365,26 +353,74 @@ void exportDataToCSV() {
     pressEnter();
 }
 
+int menu() {
+    const char menu[6][100] = {
+        "1. \033[4mA\033[0m Tambah Data",
+        "2. \033[4mB\033[0m Ubah Data",
+        "3. \033[4mC\033[0m Tampilkan Semua Data (dengan Index)",
+        "4. \033[4mD\033[0m Tampilkan Semua Data (tanpa Index)",
+        "5. \033[4mE\033[0m Hapus Data",
+        "6. \033[4mF\033[0m Keluar"
+    };
+
+    int posisi = 0, totalMenu = 6;
+    char key;
+
+    while (1) {
+        system("cls");
+        printf("================================\n");
+        printf("  SISTEM PENGELOLAAN KOMPONEN   \n");
+        printf("================================\n");
+        for (int i = 0; i < totalMenu; i++) {
+            if (i == posisi)
+                printf(" >> %s <<\n", menu[i]);
+            else
+                printf("   %s\n", menu[i]);
+        }
+
+        key = getch();
+        if (key == 0 || key == -32 || key == 224) {
+            key = getch();
+            if (key == ATAS)
+                posisi = (posisi - 1 + totalMenu) % totalMenu;
+            else if (key == BAWAH)
+                posisi = (posisi + 1) % totalMenu;
+        } else if (key == ENTER) {
+            return posisi + 1;
+        } else {
+            if (key >= '1' && key <= '6') {
+                return key - '0';
+            } else if (key >= 'A' && key <= 'F') {
+                return (key - 'A') + 1;
+            } else if (key >= 'a' && key <= 'f') {
+                return (key - 'a') + 1;
+            }
+        }
+    }
+}
 
 int main() {
     loadIndex();
     if (indexCount == 0) {
         loadDataFromCSV();
     }
-    char pilihan;
-    do {
-        tampilkanMenu();
-        scanf(" %c", &pilihan);
-        switch (pilihan) {
-            case '1': case 'M': case 'm': tambahData(); break;
-            case '2': case 'U': case 'u': ubahData(); break;
-            case '3': case 'X': case 'x': tampilkanDataDenganIndex(); break;
-            case '4': case 'T': case 't': tampilkanDataTanpaIndex(); break;
-            case '5': case 'H': case 'h': hapusData(); break;
-            case '6': case 'K': case 'k': printf("Terima kasih telah menggunakan sistem ini!\n"); break;
-            default: printf("Pilihan tidak valid!\n"); pressEnter(); break;
+    int pilihan;
+    while (1) {
+        pilihan = menu();
+        if (pilihan == 1) {
+            tambahData();
+        } else if (pilihan == 2) {
+            ubahData();
+        } else if (pilihan == 3) {
+            tampilkanDataDenganIndex();
+        } else if (pilihan == 4) {
+            tampilkanDataTanpaIndex();
+        } else if (pilihan == 5) {
+            hapusData();
+        } else if (pilihan == 6) {
+            exportDataToCSV();
+            printf("Keluar dari program.\n");
+            return 0;
         }
-    } while (pilihan != '6' && pilihan != 'K' && pilihan != 'k');
-    exportDataToCSV();
-    return 0;
+    }
 }
