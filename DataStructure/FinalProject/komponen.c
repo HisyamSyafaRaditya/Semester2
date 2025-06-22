@@ -28,12 +28,7 @@ const char* CSV_FILE = "sample_komponen.csv";
 Index indexList[1000];
 int indexCount = 0;
 
-// Fungsi bantu
-void pressEnter() {
-    printf("Press Enter to continue...");
-    getchar(); getchar();
-}
-
+// Fungsi 
 void loadIndex() {
     FILE* file = fopen(INDEX_FILE, "rb");
     if (file != NULL) {
@@ -137,7 +132,6 @@ void loadDataFromCSV() {
     sortIndex();
     saveIndex();
     printf("%d records loaded from CSV successfully!\n", count);
-    pressEnter();
 }
 
 void tambahData() {
@@ -147,7 +141,7 @@ void tambahData() {
     for (int i = 0; i < indexCount; i++) {
         if (strcmp(indexList[i].nomorKomponen, komp.nomorKomponen) == 0) {
             printf("Nomor komponen sudah ada!\n");
-            pressEnter();
+    
             return;
         }
     }
@@ -173,7 +167,6 @@ void tambahData() {
     } else {
         printf("Error opening file!\n");
     }
-    pressEnter();
 }
 
 void ubahData() {
@@ -189,13 +182,13 @@ void ubahData() {
     }
     if (posisi == -1) {
         printf("Data tidak ditemukan!\n");
-        pressEnter();
+
         return;
     }
     FILE* file = fopen(DATA_FILE, "r+b");
     if (file == NULL) {
         printf("Error opening file!\n");
-        pressEnter();
+
         return;
     }
     fseek(file, posisi, SEEK_SET);
@@ -218,14 +211,13 @@ void ubahData() {
     fwrite(&komp, sizeof(Komponen), 1, file);
     fclose(file);
     printf("\nData berhasil diubah!\n");
-    pressEnter();
 }
 
 void tampilkanDataDenganIndex() {
     FILE* file = fopen(DATA_FILE, "rb");
     if (file == NULL) {
         printf("Error opening file!\n");
-        pressEnter();
+
         return;
     }
     printf("%-8s%-8s%-26s%-8s%-12s%-15s\n", "No.", "Nomor", "Nama Komponen", "Stok", "Harga", "Total Nilai");
@@ -242,14 +234,13 @@ void tampilkanDataDenganIndex() {
     fclose(file);
     printf("================================================================================\n");
     printf("Total Aset Komponen: Rp %.2f\n", totalAset);
-    pressEnter();
 }
 
 void tampilkanDataTanpaIndex() {
     FILE* file = fopen(DATA_FILE, "rb");
     if (file == NULL) {
         printf("Error opening file!\n");
-        pressEnter();
+
         return;
     }
 
@@ -271,7 +262,6 @@ void tampilkanDataTanpaIndex() {
     fclose(file);
     printf("================================================================================\n");
     printf("Total Aset Komponen: Rp %.2f\n", totalAset);
-    pressEnter();
 }
 
 
@@ -288,7 +278,7 @@ void hapusData() {
     }
     if (indexPos == -1) {
         printf("Data tidak ditemukan!\n");
-        pressEnter();
+
         return;
     }
     FILE* file = fopen(DATA_FILE, "rb");
@@ -317,14 +307,13 @@ void hapusData() {
             printf("Penghapusan dibatalkan.\n");
         }
     }
-    pressEnter();
 }
 
 void exportDataToCSV() {
     FILE* file = fopen(DATA_FILE, "rb");
     if (file == NULL) {
         printf("Gagal membuka file data!\n");
-        pressEnter();
+
         return;
     }
 
@@ -332,7 +321,7 @@ void exportDataToCSV() {
     if (csv == NULL) {
         printf("Gagal membuat file CSV!\n");
         fclose(file);
-        pressEnter();
+
         return;
     }
 
@@ -350,17 +339,16 @@ void exportDataToCSV() {
     fclose(file);
     fclose(csv);
     printf("Data berhasil diekspor ke %s!\n", CSV_FILE);
-    pressEnter();
 }
 
 int menu() {
     const char menu[6][100] = {
-        "1. \033[4mA\033[0m Tambah Data",
-        "2. \033[4mB\033[0m Ubah Data",
-        "3. \033[4mC\033[0m Tampilkan Semua Data (dengan Index)",
-        "4. \033[4mD\033[0m Tampilkan Semua Data (tanpa Index)",
-        "5. \033[4mE\033[0m Hapus Data",
-        "6. \033[4mF\033[0m Keluar"
+        "1. \033[4mM\033[0menambah Data",
+        "2. \033[4mU\033[0mbah Data",
+        "3. Tampilkan Semua Data dengan Inde\033[4mx\033[0m",
+        "4. Tampilkan Semua Data \033[4mT\033[0manpa Index",
+        "5. \033[4mH\033[0mapus Data",
+        "6. \033[4mK\033[0meluar"
     };
 
     int posisi = 0, totalMenu = 6;
@@ -392,8 +380,20 @@ int menu() {
                 return key - '0';
             } else if (key >= 'A' && key <= 'F') {
                 return (key - 'A') + 1;
-            } else if (key >= 'a' && key <= 'f') {
-                return (key - 'a') + 1;
+            } else {
+                if (key == 'M' || key == 'm') {
+                    return 1;
+                } else if (key == 'U' || key == 'u') {
+                    return 2;
+                } else if (key == 'X' || key == 'x') {
+                    return 3;
+                } else if (key == 'T' || key == 't') {
+                    return 4;
+                } else if (key == 'H' || key == 'h') {
+                    return 5;
+                } else if (key == 'K' || key == 'k') {
+                    return 6;
+                }
             }
         }
     }
@@ -422,5 +422,7 @@ int main() {
             printf("Keluar dari program.\n");
             return 0;
         }
+        printf("\nTekan tombol untuk kembali ke menu...");
+        getch();
     }
 }
