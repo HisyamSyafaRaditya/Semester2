@@ -25,7 +25,7 @@ const char* CSV_FILE = "sample_komponen.csv";
 Index indexList[1000];
 int indexCount = 0;
 
-// Fungsi
+// Fungsi 
 
 void pressEnter() {
     printf("Press Enter to continue...");
@@ -174,6 +174,51 @@ void tambahData() {
     pressEnter();
 }
 
+void ubahData() {
+    char nomorCari[7];
+    printf("Masukkan nomor komponen yang akan diubah: ");
+    scanf("%s", nomorCari);
+    long posisi = -1;
+    for (int i = 0; i < indexCount; i++) {
+        if (strcmp(indexList[i].nomorKomponen, nomorCari) == 0) {
+            posisi = indexList[i].posisi;
+            break;
+        }
+    }
+    if (posisi == -1) {
+        printf("Data tidak ditemukan!\n");
+        pressEnter();
+        return;
+    }
+    FILE* file = fopen(DATA_FILE, "r+b");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        pressEnter();
+        return;
+    }
+    fseek(file, posisi, SEEK_SET);
+    Komponen komp;
+    fread(&komp, sizeof(Komponen), 1, file);
+    printf("\nData saat ini:\n");
+    printf("Nomor: %s\n", komp.nomorKomponen);
+    printf("Nama: %s\n", komp.namaKomponen);
+    printf("Stok: %d\n", komp.jumlahStok);
+    printf("Harga: %.2f\n\n", komp.hargaSatuan);
+    getchar();
+    printf("Nama Komponen baru (max 25 char): ");
+    fgets(komp.namaKomponen, 26, stdin);
+    komp.namaKomponen[strcspn(komp.namaKomponen, "\n")] = 0;
+    printf("Jumlah Stok baru: ");
+    scanf("%d", &komp.jumlahStok);
+    printf("Harga Satuan baru: ");
+    scanf("%lf", &komp.hargaSatuan);
+    fseek(file, posisi, SEEK_SET);
+    fwrite(&komp, sizeof(Komponen), 1, file);
+    fclose(file);
+    printf("\nData berhasil diubah!\n");
+    pressEnter();
+}
+
 void tampilkanDataDenganIndex() {
     FILE* file = fopen(DATA_FILE, "rb");
     if (file == NULL) {
@@ -205,22 +250,28 @@ void tampilkanDataTanpaIndex() {
         pressEnter();
         return;
     }
-    printf("%-8s%-8s%-26s%-8s%-12s%-15s\n", "No.", "Nomor", "Nama Komponen", "Stok", "Harga", "Total Nilai");
-    printf("--------------------------------------------------------------------------------\n");
+
+    printf("%-8s%-26s%-8s%-12s%-15s\n", "No.", "Nama Komponen", "Stok", "Harga", "Total Nilai");
+    printf("----------------------------------------------------------------------\n");
+
     Komponen komp;
     double totalAset = 0;
     int count = 0;
+
     while (fread(&komp, sizeof(Komponen), 1, file) == 1) {
         double totalNilai = komp.jumlahStok * komp.hargaSatuan;
         totalAset += totalNilai;
         count++;
-        printf("%-8d%-8s%-26s%-8d%-12.2f%-15.2f\n", count, komp.nomorKomponen, komp.namaKomponen, komp.jumlahStok, komp.hargaSatuan, totalNilai);
+
+        printf("%-8d%-26s%-8d%-12.2f%-15.2f\n", count, komp.namaKomponen, komp.jumlahStok, komp.hargaSatuan, totalNilai);
     }
+
     fclose(file);
     printf("================================================================================\n");
     printf("Total Aset Komponen: Rp %.2f\n", totalAset);
     pressEnter();
 }
+
 
 void hapusData() {
     char nomorCari[7];
@@ -271,15 +322,49 @@ void tampilkanMenu() {
     printf("================================\n");
     printf("  SISTEM PENGELOLAAN KOMPONEN   \n");
     printf("================================\n");
-    printf("1/M. Menambah data\n");
-    printf("2/U. Mengubah data\n");
-    printf("3/X. Menampilkan semua data dengan index\n");
-    printf("4/T. Menampilkan semua data tanpa index\n");
-    printf("5/H. Hapus data\n");
-    printf("6/K. Keluar\n");
+    printf("[1/m]. Menambah data\n");
+    printf("[2/u]. Mengubah data\n");
+    printf("[3/x]. Menampilkan semua data dengan index\n");
+    printf("[4/T]. Menampilkan semua data tanpa index\n");
+    printf("[5/H]. Hapus data\n");
+    printf("[6/K]. Keluar\n");
     printf("================================\n");
     printf("Pilih menu: ");
 }
+
+void exportDataToCSV() {
+    FILE* file = fopen(DATA_FILE, "rb");
+    if (file == NULL) {
+        printf("Gagal membuka file data!\n");
+        pressEnter();
+        return;
+    }
+
+    FILE* csv = fopen(CSV_FILE, "w");
+    if (csv == NULL) {
+        printf("Gagal membuat file CSV!\n");
+        fclose(file);
+        pressEnter();
+        return;
+    }
+
+    fprintf(csv, "Nomor,Nama,Stok,Harga\n");
+
+    Komponen komp;
+    while (fread(&komp, sizeof(Komponen), 1, file) == 1) {
+        fprintf(csv, "%s,%s,%d,%.2f\n",
+            komp.nomorKomponen,
+            komp.namaKomponen,
+            komp.jumlahStok,
+            komp.hargaSatuan);
+    }
+
+    fclose(file);
+    fclose(csv);
+    printf("Data berhasil diekspor ke %s!\n", CSV_FILE);
+    pressEnter();
+}
+
 
 int main() {
     loadIndex();
@@ -292,7 +377,7 @@ int main() {
         scanf(" %c", &pilihan);
         switch (pilihan) {
             case '1': case 'M': case 'm': tambahData(); break;
-            case '2': case 'U': case 'u': break;
+            case '2': case 'U': case 'u': ubahData(); break;
             case '3': case 'X': case 'x': tampilkanDataDenganIndex(); break;
             case '4': case 'T': case 't': tampilkanDataTanpaIndex(); break;
             case '5': case 'H': case 'h': hapusData(); break;
@@ -300,5 +385,6 @@ int main() {
             default: printf("Pilihan tidak valid!\n"); pressEnter(); break;
         }
     } while (pilihan != '6' && pilihan != 'K' && pilihan != 'k');
+    exportDataToCSV();
     return 0;
 }
