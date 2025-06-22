@@ -25,7 +25,7 @@ const char* CSV_FILE = "sample_komponen.csv";
 Index indexList[1000];
 int indexCount = 0;
 
-// Fungsi bantu
+// Fungsi
 
 void pressEnter() {
     printf("Press Enter to continue...");
